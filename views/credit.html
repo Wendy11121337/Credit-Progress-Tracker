@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>畢業學分進度</title>
+    <style>
+        h1{
+            text-align: center;
+            font-size:larger;
+            color: blue;
+        }
+        fieldset {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        legend {
+            font-weight: bold;
+            color: #333;
+            padding: 0 10px;
+        }
+        .course-item {
+            margin-bottom: 5px;
+            display: block; /* 讓每個課程獨佔一行 */
+        }
+        .course-item label {
+            cursor: pointer;
+            display: inline-flex; /* 讓 checkbox 和文字對齊 */
+            align-items: center;
+        }
+        .course-item input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        /* 針對預設已完成的課程的樣式 */
+        .default-completed-course {
+            font-weight: bold; 
+            color: green; 
+        }
+        /* 針對使用者勾選的課程的樣式 */
+        .completed-by-checkbox label {
+            text-decoration: line-through;
+            color: gray;
+        }
+        #progress-summary {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+        #progress-summary ul {
+            list-style: none;
+            padding: 0;
+        }
+        #progress-summary li {
+            margin-bottom: 5px;
+        }
+        .add-course-section label, .add-course-section select, .add-course-section button {
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>畢業學分進度紀錄</h1>
+
+    <div id="progress-summary">
+        <h2>學分進度概覽</h2>
+        <p>必修學分：已完成 <span id="major-completed">0</span> / <span id="major-target">0</span> 學分 (還需 <span id="major-remaining">0</span> 學分)</p>
+        <p>選修學分：已完成 <span id="elective-overall-completed">0</span> / <span id="elective-overall-target">0</span> 學分 (還需 <span id="elective-overall-remaining">0</span> 學分)</p>
+        <p>&nbsp;&nbsp;&nbsp;&nbsp;- 文學類選修：已完成 <span id="elective-literature-completed">0</span> / <span id="elective-literature-target">0</span> 學分 (還需 <span id="elective-literature-remaining">0</span> 學分)</p>
+        <p>&nbsp;&nbsp;&nbsp;&nbsp;- 寫作類選修：已完成 <span id="elective-writing-completed">0</span> / <span id="elective-writing-target">0</span> 學分 (還需 <span id="elective-writing-remaining">0</span> 學分)</p>
+        <p>&nbsp;&nbsp;&nbsp;&nbsp;- 外系選修 (上限16學分)：已完成 <span id="elective-mutual-completed">0</span> / <span id="elective-mutual-target">0</span> 學分 (還需 <span id="elective-mutual-remaining">0</span> 學分)</p>
+        <p>輔系學分：已完成 <span id="minor-completed">0</span> / <span id="minor-target">0</span> 學分 (還需 <span id="minor-remaining">0</span> 學分)</p>
+        <p>畢業總學分：已完成 <span id="overall-completed">0</span> / <span id="overall-target">0</span> 學分 (還需 <span id="overall-remaining">0</span> 學分)</p>
+        <h3>特殊要求：</h3>
+        <ul id="special-req-list">
+            </ul>
+    </div>
+
+    <fieldset>
+        <legend>必修學分</legend>
+        <label><b>．共同年級必修</b></label><br>
+        <div id="required-common-courses-list"></div>
+        <br>
+
+        <label><b>．一年級必修</b></label><br>
+        <div id="required-year1-courses-list"></div>
+        <br>
+
+        <label><b>．二年級必修</b></label><br>
+        <div id="required-year2-courses-list"></div>
+        <br>
+
+        <label><b>．三年級必修</b></label><br>
+        <div id="required-year3-courses-list"></div>
+        <br>
+
+        <label><b>．四年級必修</b></label><br>
+        <div id="required-year4-courses-list"></div>
+    </fieldset>
+
+    <fieldset>
+        <legend>選修學分</legend>
+        <div class="add-course-section">
+            <label>請輸入選修課程：<input type="text" id="elective-course-name"></label>
+            <label>請選擇此課程學分：</label>
+            <select id="elective-course-credits">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="6">6</option>
+            </select>
+            <label>課程子類別：</label>
+            <select id="elective-course-subtype">
+                <option value="">無</option>
+                <option value="literature">文學類</option>
+                <option value="writing">寫作類</option>
+                <option value="mutual">外系選修</option>
+            </select>
+            <button id="add-elective-btn">確認</button><br>
+        </div>
+        <div id="elective-courses-list"></div>
+    </fieldset>
+
+    <fieldset>
+        <legend>輔系學分</legend>
+        <div id="minor-fixed-courses-list"></div>
+        <br>
+        <div class="add-course-section">
+            <label>請輸入輔系必修/選修課程：<input type="text" id="minor-course-name"></label>
+            <label>請選擇此課程學分：</label>
+            <select id="minor-course-credits">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="6">6</option>
+            </select>
+            <label>課程類型：</label>
+            <select id="minor-course-type">
+                <option value="minor_required">輔系必修</option>
+            </select>
+            <button id="add-minor-btn">確認</button><br>
+        </div>
+        <div id="minor-dynamic-courses-list"></div>
+    </fieldset>
+
+    <script>
+        // 輔助函數：根據課程類型將其渲染到正確的區塊
+        function getContainerIdForCourseType(type) {
+            switch(type) {
+                case 'required_common': return 'required-common-courses-list';
+                case 'required_year1': return 'required-year1-courses-list';
+                case 'required_year2': return 'required-year2-courses-list';
+                case 'required_year3': return 'required-year3-courses-list';
+                case 'required_year4': return 'required-year4-courses-list';
+                case 'elective': return 'elective-courses-list';
+                case 'minor_required': return 'minor-fixed-courses-list';
+                case 'minor_elective': return 'minor-dynamic-courses-list';
+                default: return null;
+            }
+        }
+
+        // 函數：渲染單個課程到頁面
+        function renderCourse(course) {
+            const containerId = getContainerIdForCourseType(course.type);
+            const container = document.getElementById(containerId);
+            if (!container) return; 
+
+            const div = document.createElement('div');
+            div.className = 'course-item';
+
+            const label = document.createElement('label');
+
+            // 顯示課程名稱、學分和子類別 (如果存在)
+            let courseText = `${course.name}`;
+            if (!course.is_special_requirement) {
+                courseText += ` (${course.credits} 學分)`;
+            }
+            if (course.type === 'elective' && course.subtype) {
+                let subtypeDisplay = '';
+                if (course.subtype === 'literature') subtypeDisplay = '文學類';
+                if (course.subtype === 'writing') subtypeDisplay = '寫作類';
+                if (course.subtype === 'mutual') subtypeDisplay = '外系選修';
+                courseText += ` [${subtypeDisplay}]`;
+            }
+
+            if (course.is_default_completed) {
+                // 如果是預設已完成的課程，不顯示 checkbox，只顯示文字，並添加特定樣式
+                label.classList.add('default-completed-course');
+                label.appendChild(document.createTextNode(`✓ ${courseText}`)); 
+            } else {
+                // 如果不是預設已完成，則顯示 checkbox
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'course-checkbox';
+                checkbox.dataset.courseId = course.course_id; // 綁定資料庫 ID
+
+                // 根據課程的完成狀態設定勾選框和樣式
+                if (course.completed) {
+                    checkbox.checked = true;
+                    label.classList.add('completed-by-checkbox'); // 使用不同的 class 區分
+                } else {
+                    checkbox.checked = false;
+                    label.classList.remove('completed-by-checkbox');
+                }
+
+                // 為每個核取方塊添加事件監聽器
+                checkbox.addEventListener('change', async (event) => {
+                    const courseId = event.target.dataset.courseId;
+                    const completed = event.target.checked;
+                    const response = await fetch('/api/update_completion', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ course_id: courseId, completed: completed })
+                    });
+                    const result = await response.json();
+                    if (result.status === 'success') {
+                        if (completed) {
+                            label.classList.add('completed-by-checkbox');
+                        } else {
+                            label.classList.remove('completed-by-checkbox');
+                        }
+                        updateProgressDisplay(); 
+                    } else {
+                        alert('更新課程狀態失敗：' + result.message);
+                        event.target.checked = !completed; 
+                    }
+                });
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(courseText));
+            }
+
+            div.appendChild(label);
+            container.appendChild(div);
+        }
+
+        // 函數：載入所有課程並渲染 UI
+        async function loadAndRenderCourses() {
+            document.getElementById('required-common-courses-list').innerHTML = '';
+            document.getElementById('required-year1-courses-list').innerHTML = '';
+            document.getElementById('required-year2-courses-list').innerHTML = '';
+            document.getElementById('required-year3-courses-list').innerHTML = '';
+            document.getElementById('required-year4-courses-list').innerHTML = '';
+            document.getElementById('elective-courses-list').innerHTML = '';
+            document.getElementById('minor-fixed-courses-list').innerHTML = '';
+            document.getElementById('minor-dynamic-courses-list').innerHTML = '';
+
+            const response = await fetch('/api/courses');
+            const courses = await response.json();
+
+            // 對課程進行排序
+            courses.sort((a, b) => {
+                const typeOrder = {
+                    'required_common': 1, 'required_year1': 2, 'required_year2': 3,
+                    'required_year3': 4, 'required_year4': 5, 'elective': 6,
+                    'minor_required': 7, 
+                };
+                if (typeOrder[a.type] !== typeOrder[b.type]) {
+                    return typeOrder[a.type] - typeOrder[b.type];
+                }
+                if (a.type === 'elective' && b.type === 'elective') {
+                    if (a.subtype && b.subtype && a.subtype !== b.subtype) {
+                        return a.subtype.localeCompare(b.subtype);
+                    }
+                }
+                return a.name.localeCompare(b.name);
+            });
+
+            courses.forEach(course => {
+                renderCourse(course);
+            });
+
+            updateProgressDisplay(); 
+        }
+
+        // 函數：更新學分進度顯示區塊
+        async function updateProgressDisplay() {
+            const response = await fetch('/api/calculate_progress');
+            const progress = await response.json();
+
+            document.getElementById('major-completed').textContent = progress.major_required.completed;
+            document.getElementById('major-target').textContent = progress.major_required.target;
+            document.getElementById('major-remaining').textContent = progress.major_required.remaining;
+
+            document.getElementById('elective-overall-completed').textContent = progress.elective_overall.completed;
+            document.getElementById('elective-overall-target').textContent = progress.elective_overall.target;
+            document.getElementById('elective-overall-remaining').textContent = progress.elective_overall.remaining;
+
+            document.getElementById('elective-literature-completed').textContent = progress.elective_literature.completed;
+            document.getElementById('elective-literature-target').textContent = progress.elective_literature.target;
+            document.getElementById('elective-literature-remaining').textContent = progress.elective_literature.remaining;
+
+            document.getElementById('elective-writing-completed').textContent = progress.elective_writing.completed;
+            document.getElementById('elective-writing-target').textContent = progress.elective_writing.target;
+            document.getElementById('elective-writing-remaining').textContent = progress.elective_writing.remaining;
+
+            const generalElectiveProgress = progress.general_elective || {};
+            document.getElementById('elective-mutual-completed').textContent = progress.elective_mutual.completed ?? 0;
+            document.getElementById('elective-mutual-target').textContent = progress.elective_mutual.target ?? 0;
+             document.getElementById('elective-mutual-remaining').textContent = progress.elective_mutual.remaining ?? 0;
+
+            document.getElementById('minor-completed').textContent = progress.minor.completed;
+            document.getElementById('minor-target').textContent = progress.minor.target;
+            document.getElementById('minor-remaining').textContent = progress.minor.remaining;
+
+            document.getElementById('overall-completed').textContent = progress.overall.completed;
+            document.getElementById('overall-target').textContent = progress.overall.target;
+            document.getElementById('overall-remaining').textContent = progress.overall.remaining;
+
+            const specialReqList = document.getElementById('special-req-list');
+            specialReqList.innerHTML = '';
+            for (const reqName in progress.special_requirements) {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${reqName}：${progress.special_requirements[reqName] ? '已完成' : '未完成'}`;
+                specialReqList.appendChild(listItem);
+            }
+        }
+
+        // 處理新增選修課程
+        document.getElementById('add-elective-btn').addEventListener('click', async () => {
+            const nameInput = document.getElementById('elective-course-name');
+            const creditsSelect = document.getElementById('elective-course-credits');
+            const subtypeSelect = document.getElementById('elective-course-subtype');
+            const courseName = nameInput.value.trim();
+            const courseCredits = parseInt(creditsSelect.value);
+            const courseSubtype = subtypeSelect.value === '' ? null : subtypeSelect.value;
+
+            if (courseName && courseCredits) {
+                const response = await fetch('/api/add_custom_course', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: courseName, credits: courseCredits, type: 'elective', subtype: courseSubtype })
+                });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    alert('選修課程新增成功！');
+                    nameInput.value = '';
+                    subtypeSelect.value = '';
+                    await loadAndRenderCourses(); // 重新載入並渲染所有課程
+                } else {
+                    alert(`新增失敗：${result.message}`);
+                }
+            } else {
+                alert('請輸入課程名稱和選擇學分。');
+            }
+        });
+
+        // 處理新增輔系課程
+        document.getElementById('add-minor-btn').addEventListener('click', async () => {
+            const nameInput = document.getElementById('minor-course-name');
+            const creditsSelect = document.getElementById('minor-course-credits');
+            const typeSelect = document.getElementById('minor-course-type');
+            const courseName = nameInput.value.trim();
+            const courseCredits = parseInt(creditsSelect.value);
+            const courseType = typeSelect.value;
+
+            if (courseName && courseCredits) {
+                const response = await fetch('/api/add_custom_course', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: courseName, credits: courseCredits, type: 'minor_required', subtype: null })
+                });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    alert('輔系課程新增成功！');
+                    nameInput.value = '';
+                    await loadAndRenderCourses(); // 重新載入並渲染所有課程
+                } else {
+                    alert(`新增失敗：${result.message}`);
+                }
+            } else {
+                alert('請輸入課程名稱、選擇學分和類型。');
+            }
+        });
+
+        // 頁面載入完成時執行
+        document.addEventListener('DOMContentLoaded', loadAndRenderCourses);
+    </script>
+</body>
+</html>
