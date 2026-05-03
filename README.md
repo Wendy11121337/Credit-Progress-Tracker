@@ -49,6 +49,7 @@ Motivation
 As a graduating senior, I found three major limitations in current campus systems:
 
 Lack of Intuitiveness: They focus on "earned credits" rather than dynamic tracking and forecasting of "remaining targets."
+
 Low Fault Tolerance in Categorization: Logic errors often occur when converting between credit categories (e.g., Minor Requirements vs. Electives).
 
 Poor Timeliness: Progress only updates at the end of a semester, preventing proactive credit planning.
@@ -58,7 +59,9 @@ Driven by a passion for administrative process optimization, I developed this pr
 Key Features
 
 Graduation Requirement Dashboard: Provides a high-level visual summary of completed and pending requirements (e.g., proficiency exams, certifications) at the top of the interface.
+
 Core Curriculum Audit: An interactive checklist that dynamically tracks the completion status of mandatory courses.
+
 Custom Course Expansion: Allows users to manually add electives or minor-related courses with customizable credit weights, ensuring maximum system flexibility.
 
 Tech Stack
